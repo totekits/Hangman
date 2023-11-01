@@ -13,7 +13,7 @@ class Hangman
     loop do 
       puts "Welcome to Hangman!\n" +
         "Type in the command and press Enter\n" +
-        "'new'\tto play a new game\n" +
+        "'new'\tto start a new game\n" +
         "'load'\tto load a saved game\n" +
         "'exit'\tto exit the game"
         
@@ -45,6 +45,33 @@ class Hangman
       "Type 'exit' and press Enter to quit the game"
   end
 
+  def finish
+    if player_wins = true
+      display
+      puts "You win!"
+    else
+      display
+      puts "You lose!\n" +
+        "The word is #{word.join}"
+    end
+
+    loop do
+      puts "Type 'new' and press Enter to start a new game\n" +
+        "Type 'load' and press Enter to load a saved game\n"
+        "Type 'exit' and press Enter to quit the game"
+
+      choice = gets.chomp.downcase
+      if choice == "new"
+        game
+      elsif choice == "load"
+        load_game
+      elsif choice == "exit"
+        exit
+      else
+        puts "Invalid command. Try again."
+      end
+    end
+  end
 
   def game
     player_wins = false
@@ -85,7 +112,6 @@ class Hangman
       elsif rounds == 0
         finish
       end
-
     end
   end
 end
