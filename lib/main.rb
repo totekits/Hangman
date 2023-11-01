@@ -1,3 +1,5 @@
+require "google-10000-english-no-swears.txt"
+
 class Hangman
   def play
     greet
@@ -11,21 +13,79 @@ class Hangman
     loop do 
       puts "Welcome to Hangman!\n" +
         "Type in the command and press Enter\n" +
-        "'n'\tto play a new game\n" +
-        "'l'\tto load a saved game\n" +
-        "'e'\tto exit the game"
+        "'new'\tto play a new game\n" +
+        "'load'\tto load a saved game\n" +
+        "'exit'\tto exit the game"
         
       choice = gets.chomp.downcase
 
-      if choice == "n"
+      if choice == "new"
         break
-      elsif choice == "l"
+      elsif choice == "load"
         load_game
-      elsif choice == "e"
+      elsif choice == "exit"
         exit
       else
         puts "Invalid command. Try again."
       end
+    end
+  end
+
+  def pick_word
+    words = File.read("google-10000-english-no-swears.txt").split
+    word = (words.sample { |word| (5..12).cover?(word.size) }).chars
+  end
+
+  def display
+    puts "Rounds left: #{rounds}\n" +
+      "Wrong characters: #{wrongs.join(" ")}\n" +
+      "#{chars.join(" ")}\n" +
+      "Type in a character and press Enter to guess\n" +
+      "Type 'save' and press Enter to save the game and quit\n" +
+      "Type 'exit' and press Enter to quit the game"
+  end
+
+
+  def game
+    player_wins = false
+    rounds = 7
+    word = pick_word
+    chars = Array.new(word.size, "_")
+    wrongs = []
+
+    loop do
+      display
+      choice = gets.chomp.downcase
+      if choice == "save" 
+        save_game
+      elsif choice == "exit"
+        exit
+      elsif choice == wrongs.include?
+        puts "You've already picked '#{choice}! Try again."
+        break
+      elsif choice != ("a".."z") 
+        puts "Invalid guess. Try again."
+        break
+      else
+        if choice != word.include?
+          wrongs << choice
+        else 
+          word.each_with_index { |char, index|
+          if char == choice
+            chars[index].sub("_", choice) 
+          end
+        }
+        end
+      end
+      rounds -= 1
+      
+      if chars == word
+        player_wins = true
+        finish
+      elsif rounds == 0
+        finish
+      end
+
     end
   end
 end
