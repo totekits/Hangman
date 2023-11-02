@@ -40,23 +40,34 @@ class Hangman
 
   def load_game
     loop do
-      if !Dir.exist?("saved_games")
+      if !Dir.exist?("saved_games") || Dir.empty?("saved_games")
         puts "No saved games found."
-        break
+        greet
       else
         saved_games = Dir.children("saved_games")
  
-        puts "Enter the number of the saved game to load:\n"
+        puts "Enter a command:\n" +
+          "'{number of saved game}' to load the game\n" +
+          "'del {number of saved game}' to delete the game\n" +
+          "'main' to go back to the main menu"
 
         saved_games.each_with_index do |file, index|
           puts "#{index + 1} #{file}"
         end
 
-        choice = gets.chomp.to_i
+        choice = gets.chomp
+        command, number = choice.split
 
-        if (1..saved_games.size).cover?(choice)
-          load_saved_game(saved_games[choice - 1])
-        else 
+        if command.downcase == 'del' && number.to_i.between?(1, saved_games.size)
+          file_to_delete = saved_games[number.to_i - 1]
+          File.delete("saved_games/#{file_to_delete}")
+          puts "Game '#{file_to_delete}' deleted successfully."
+        elsif number.to_i.between?(1, saved_games.size)
+          load_saved_game(saved_games[number.to_i - 1])
+        elsif
+          command.downcase == 'main'
+          greet
+        else
           puts "Invalid input. Try again."
         end
       end
