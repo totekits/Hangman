@@ -1,3 +1,5 @@
+require "json"
+
 class Hangman
 
   def initialize
@@ -14,6 +16,63 @@ class Hangman
   end
 
   private
+
+  def save_game
+    Dir.mkdir("saved_games") unless Dir.exist?("saved_games")
+    File.write("saved_games/#{@clue.join}.json", JSON.dump(current_game_state))
+    puts "Your game is saved as '#{@clue.join}'\n" +
+      "see you next time!"
+    exit
+  end
+
+  def load_saved_game(file)
+    saved_game = JSON.parse(File.read("saved_games/#{file}"))
+  
+    @winner = saved_game["winner"]
+    @guesses = saved_game["guesses"]
+    @keyword = saved_game["keyword"]
+    @clue = saved_game["clue"]
+    @right_letters = saved_game["right_letters"]
+    @wrong_letters = saved_game["wrong_letters"]
+  
+    play
+  end
+
+  def load_game
+    loop do
+      if !Dir.exist?("saved_games")
+        puts "No saved games found."
+        break
+      else
+        saved_games = Dir.children("saved_games")
+ 
+        puts "Enter the number of the saved game to load:\n"
+
+        saved_games.each_with_index do |file, index|
+          puts "#{index + 1} #{file}"
+        end
+
+        choice = gets.chomp.to_i
+
+        if (1..saved_games.size).cover?(choice)
+          load_saved_game(saved_games[choice - 1])
+        else 
+          puts "Invalid input. Try again."
+        end
+      end
+    end
+  end
+
+  def current_game_state
+    {
+    winner: @winner,
+    guesses: @guesses,  
+    keyword: @keyword,
+    clue: @clue,
+    right_letters: @right_letters,
+    wrong_letters: @wrong_letters
+    }
+  end
 
   def display_main_menu
     puts "Enter a command:\n" +
@@ -32,8 +91,12 @@ class Hangman
       "You lose if you pick the wrong letters 7 times.\n" +
       "Good luck!"
 
+    @winner = false
+    @guesses = 7
     @keyword = pick_random_word
     @clue = Array.new(@keyword.size, "_")
+    @right_letters = []
+    @wrong_letters = []
 
     play
   end
@@ -140,9 +203,8 @@ class Hangman
       process_game_menu(choice)
       process_guess(choice)
       check_win
-      break if @winner
+      thank if @winner
     end
-    thank
   end  
 end
 
