@@ -1,5 +1,3 @@
-require "google-10000-english-no-swears.txt"
-
 class Hangman
   def play
     greet
@@ -12,6 +10,7 @@ class Hangman
   def greet
     loop do 
       puts "Welcome to Hangman!\n" +
+        "You have 7 guesses to guess the keyword\n" +
         "Type in the command and press Enter\n" +
         "'new'\tto start a new game\n" +
         "'load'\tto load a saved game\n" +
@@ -31,28 +30,26 @@ class Hangman
     end
   end
 
-  def pick_word
-    words = File.read("google-10000-english-no-swears.txt").split
-    word = (words.sample { |word| (5..12).cover?(word.size) }).chars
+  def pick_random_word
+    words = File.readlines("google-10000-english-no-swears.txt").map(&:chomp)
+    words.select { |word| (5..12).cover?(word.size) }.sample.chars
   end
 
-  def display
-    puts "Rounds left: #{rounds}\n" +
+  def display(guesses, clues, wrongs)
+    puts "Guesses left: #{guesses}\n" +
       "Wrong characters: #{wrongs.join(" ")}\n" +
-      "#{chars.join(" ")}\n" +
+      "#{clues.join(" ")}\n" +
       "Type in a character and press Enter to guess\n" +
       "Type 'save' and press Enter to save the game and quit\n" +
       "Type 'exit' and press Enter to quit the game"
   end
 
-  def finish
-    if player_wins = true
-      display
+  def finish(player_wins, keyword)
+    if player_wins == true
       puts "You win!"
     else
-      display
       puts "You lose!\n" +
-        "The word is #{word.join}"
+        "The keyword is #{keyword.join}"
     end
 
     loop do
@@ -74,44 +71,47 @@ class Hangman
   end
 
   def game
+    guesses = 7
     player_wins = false
-    rounds = 7
-    word = pick_word
-    chars = Array.new(word.size, "_")
+    keyword = pick_random_word
+    clues = []
+    (keyword.size).times { clues << "_" }
+    rights = []
     wrongs = []
 
     loop do
-      display
+      display(guesses, clues, wrongs)
       choice = gets.chomp.downcase
       if choice == "save" 
         save_game
       elsif choice == "exit"
         exit
-      elsif choice == wrongs.include?
+      elsif wrongs.include?(choice) || rights.include?(choice)
         puts "You've already picked '#{choice}! Try again."
-        break
-      elsif choice != ("a".."z") 
+      elsif !choice.match?(/^[a-z]$/)
         puts "Invalid guess. Try again."
-        break
       else
-        if choice != word.include?
-          wrongs << choice
-        else 
-          word.each_with_index { |char, index|
-          if char == choice
-            chars[index].sub("_", choice) 
+        if keyword.include?(choice)
+          keyword.each_with_index do |char, index|
+            if char == choice
+              clues[index] = choice 
+            end
           end
-        }
+          rights << choice
+        else 
+          wrongs << choice
+          guesses -= 1
         end
       end
-      rounds -= 1
       
-      if chars == word
+      if clues == keyword
         player_wins = true
-        finish
-      elsif rounds == 0
-        finish
+        finish(player_wins, keyword)
+      elsif guesses == 0
+        finish(player_wins, keyword)
       end
     end
   end
 end
+
+Hangman.new.play
