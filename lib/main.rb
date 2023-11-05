@@ -12,7 +12,7 @@ class Hangman
   end
 
   def game
-    greet
+    main_menu
   end
 
   private
@@ -125,11 +125,15 @@ class Hangman
     end
   end
 
-  def greet
-    puts "Welcome to Hangman!"
-    display_main_menu
+  def main_menu
+    if @winner == false
+      puts "Welcome to Hangman!"
+    elsif @winner == true
+      puts "Thanks for playing Hangman!"  
+    end
 
-    loop do
+    loop do  
+      display_main_menu
       choice = gets.chomp.downcase
       process_main_menu(choice)
     end
@@ -184,16 +188,6 @@ class Hangman
     end  
   end
 
-  def thank
-    puts "Thanks for trying my game!"
-    display_main_menu
-
-    loop do
-      choice = gets.chomp.downcase
-      process_main_menu(choice)
-    end
-  end
-
   def check_win
     if @clue.join == @keyword.join
       puts "You win!\n" +
@@ -214,7 +208,7 @@ class Hangman
       process_game_menu(choice)
       process_guess(choice)
       check_win
-      thank if @winner
+      main_menu if @winner
     end
   end  
 end
